@@ -1,45 +1,89 @@
-const getState = ({ getStore, getActions, setStore }) => {
+import {
+	getAllCharacteres,
+	getAllPlanets,
+	getAllVehicles,
+	getCharacter,
+	getPlanet,
+	getVehicle,
+  } from "../services/enpoints";
+  
+  const getState = ({ getStore, getActions, setStore }) => {
 	return {
-		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
+	  store: {
+		characteres: [],
+		planets: [],
+		vehicles: [],
+		favorites: [],
+	  },
+	  actions: {
+		loadCharacteresData: async () => {
+		  const local = JSON.parse(localStorage.getItem("store"));
+		  if (local?.characteres) {
+			setStore(local);
+			return;
+		  }
+		  const res = await getAllCharacteres();
+		  if (res?.message === "ok") {
+			const resPro = res.results.map((character) =>
+			  getCharacter(character.uid)
+			);
+			const resAllData = await Promise.all(resPro);
+			const propertiesArray = resAllData.map(
+			  (item) => item?.result.properties
+			);
+			setStore({ ...getStore(), characteres: propertiesArray });
+			localStorage.setItem("store", JSON.stringify(getStore()));
+		  }
 		},
-		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
-
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
-
-				//reset the global store
-				setStore({ demo: demo });
-			}
-		}
+		loadPlanetsData: async () => {
+		  const local = JSON.parse(localStorage.getItem("store"));
+		  if (local?.planets) {
+			setStore(local);
+			return;
+		  }
+		  const res = await getAllPlanets();
+		  if (res?.message === "ok") {
+			const resPro = res.results.map((planets) => getPlanet(planets.uid));
+			const resAllData = await Promise.all(resPro);
+			const propertiesArray = resAllData.map(
+			  (item) => item?.result.properties
+			);
+			setStore({ ...getStore(), planets: propertiesArray });
+			localStorage.setItem("store", JSON.stringify(getStore()));
+		  }
+		},
+		loadVehicleData: async () => {
+		  const local = JSON.parse(localStorage.getItem("store"));
+		  if (local?.vehicles) {
+			setStore(local);
+			return;
+		  }
+		  const res = await getAllVehicles();
+		  if (res?.message === "ok") {
+			const resPro = res.results.map((vehicle) => getVehicle(vehicle.uid));
+			const resAllData = await Promise.all(resPro);
+			const propertiesArray = resAllData.map(
+			  (item) => item?.result.properties
+			);
+			setStore({ ...getStore(), vehicles: propertiesArray });
+			localStorage.setItem("store", JSON.stringify(getStore()));
+		  }
+		},
+		addFavorites: (item) => {
+		  setStore({
+			...getStore(),
+			favorites: [...getStore().favorites, item],
+		  });
+		},
+		removeFavorites: (item) => {
+		  setStore({
+			...getStore(),
+			favorites: getStore().favorites.filter((i) => i.name !== item.name),
+		  });
+		},
+	  },
 	};
-};
-
-export default getState;
+  };
+  
+  export default getState;
+  
